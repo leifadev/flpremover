@@ -5,7 +5,6 @@ from pathlib import Path
 import tkinter as tk
 from tkinter import ttk
 import tkinter.font as tkFont
-from tkinter import END
 from tkinter import filedialog
 from tkinter import messagebox
 import tkinter.font as tkFont
@@ -14,19 +13,6 @@ from ttkthemes import ThemedTk
 # Pack the GUI at some point please
 # https://www.tutorialspoint.com/python/tk_pack.htm
 
-
-# recycleURLs Method (doesnt work rn) allows you as Finder to delete items
-#error = NSError
-#urls = [url]
-#tashurl = os.path.join('/Users/leif/.Trash/', 'test.txt')
-#newurls = {
-#    url: NSURL.fileURLWithPath_(os.path.join('/Users/leif/.Trash/', 'test.txt'))
-#}
-#def completionHandler(newURLs, error):
-#    print(error)
-#    
-#sw = NSWorkspace.sharedWorkspace()
-#sw.recycleURLs_completionHandler_(urls, completionHandler(newurls, error))
 
 class GUI:
     def __init__(self, root):
@@ -62,13 +48,13 @@ class GUI:
         self.old_keep_amount_entry.place(x=380,y=210,width=70,height=25)
 #        self.old_keep_amount_entry.bind("<FocusOut>", self.old_keep_amount_entry_update)
 
-        output_label=ttk.Label(root)
-        output_label["text"] = "label"
-        output_label.place(x=290,y=210,width=70,height=25)
+#        output_label=ttk.Label(root)
+#        output_label["text"] = "label"
+#        output_label.place(x=290,y=210,width=70,height=25)
 
         quit_button=ttk.Button(root)
         quit_button["text"] = "Quit"
-        quit_button.place(x=20,y=365,width=70,height=25)
+        quit_button.place(x=10,y=365,width=70,height=25)
         quit_button["command"] = self.quit_button_command
 
         app_title_message=tk.Message(root)
@@ -81,16 +67,16 @@ class GUI:
         """
         app_title_message.place(x=65,y=0,width=500,height=180)
 
-        GCheckBox_517=ttk.Checkbutton(root)
-        GCheckBox_517["text"] = "CheckBox"
-        GCheckBox_517.place(x=270,y=230,width=70,height=25)
-        GCheckBox_517["offvalue"] = "0"
-        GCheckBox_517["onvalue"] = "1"
-        GCheckBox_517["command"] = self.GCheckBox_517_command
+#        GCheckBox_517=ttk.Checkbutton(root)
+#        GCheckBox_517["text"] = "CheckBox"
+#        GCheckBox_517.place(x=270,y=230,width=70,height=25)
+#        GCheckBox_517["offvalue"] = "0"
+#        GCheckBox_517["onvalue"] = "1"
+#        GCheckBox_517["command"] = self.GCheckBox_517_command
 
-        status_label=ttk.Label(root)
-        status_label["text"] = "label"
-        status_label.place(x=290,y=180,width=70,height=25)
+#        status_label=ttk.Label(root)
+#        status_label["text"] = "label"
+#        status_label.place(x=290,y=180,width=70,height=25)
 
         recent_keep_amount_label=ttk.Label(root)
         recent_keep_amount_label["text"] = """Keep backups\n(from newest)"""
@@ -210,30 +196,25 @@ class GUI:
 
                 # Sort all file names of .FLP's with sorted() and iterdir(), with lamdba key by creation time (getctime)
                 try:
-                    sorted_backups = sorted(Path(f'{directory}/{folder}/Backup').iterdir(), key=os.path.getctime)
+                    sorted_backups = sorted(Path(f'{directory}/{folder}/Backup').iterdir(), key=os.path.getctime) # Sorted by creation time .getctime from os.path module
+                    
+                    # Find path that's file is .DS_Store
+                    for i in sorted_backups:
+                        if i.absolute().as_posix().split("/")[-1] == ".DS_Store":
+                            sorted_backups.remove(i)
+                    # Check output of unsorted then sorted (by creation time)
+#                    from pprint import pprint
+#                    pprint(backup_total)
+#                    pprint(sorted_backups)
+                    
                 except FileNotFoundError as e:
                     print(f'Could not find a backup folder for {folder}', e)
                     continue # Skip this folder in the loop, since there is no backup folder to sort through
-                    
-                # Check for over or under calculations of users parameters to actual FLP count
-#                if len(sorted_backups) < keep_from_recent:
-#                    # This means there are less backups than
-#                    # what the person already wanted to keep
-#                    print(f"Didn't have to delete anything because you already have {len(sorted_backups)} backups and chose to keep (from newest) {keep_from_recent} backups!")
-#                    print("Try again!")
-##                    sys.exit(1)
-#                    
-#                elif len(sorted_backups) < keep_from_old:
-#                    # Remove certain amount of most recently created files from list so we delete all the other ones
-#                    print(f"Didn't have to delete anything because you already have {len(sorted_backups)} backups and chose to keep (from oldest) {keep_from_old} backups!")
-#                    print("Try again!")
-#                    sys.exit(1)
-
 
                 # Index sorted backups for recently kept amount
                 keep_files_index = sorted_backups[0:keep_from_recent]
-                print(f'Attempting to delete {len(keep_files_index)} backups from the most recent...')
-#                print(keep_files_index)
+#                print(f'Attempting to delete {len(keep_files_index)} backups from the most recent...')
+#                print("22", keep_files_index)
                 
                 # Index sorted backups for recently kept amount (uses slice operator to gather from the negative
                 # indexing that gives me multiple of the last items rather than just the last using -1
@@ -241,13 +222,23 @@ class GUI:
                 # Index sorted backups for earliest kept amount
                 
                 keep_files_old_index = sorted_backups[-keep_from_old:]
-                print(f'Attempting to delete {len(keep_files_old_index)} backups from the most old...')
-#                print(keep_files_old_index)
+#                print(f'Attempting to delete {len(keep_files_old_index)} backups from the most old...')
+#                print("33", keep_files_old_index)
+                from pprint import pprint
+                print(keep_from_recent, keep_from_old)
                 
+                if keep_from_recent != 0: # If value was ever 0 if user wants to keep NO files
+                    keep_from_recent = keep_from_recent - 1
+                    keep_from_old = keep_from_old + 1
+                    
+                deleted_files_index = sorted_backups[keep_from_recent:-keep_from_old:]
                 
+                if not deleted_files_index:
+                    messagebox.showwarning(message="No files were deleted since your range of files you kept was to big!")
+                
+                pprint(deleted_files_index)
                 # Using MacOS to delete files from system instead of python
                 # via NSFileManager for more secure and legitimate outcomes (depedent on MacOS more)
-                
                 user = os.path.expanduser('~')
 
                 from Foundation import NSURL, NSFileManager
@@ -255,34 +246,29 @@ class GUI:
                 # Make MacOS File Manager url and manager to use real trash methods
 #                fm = NSFileManager.defaultManager()
 
-#                try:
-                for file in keep_files_index:
-#                    print(file)
-                    user_trash_path = os.path.join('/Users/{user}/.Trash', file)
-                    fileurl = os.path.join(directory, file)
-                                            
+#                for file in keep_files_index:
+##                    print(file)
+#                    user_trash_path = os.path.join('/Users/{user}/.Trash', file)
+#                    fileurl = os.path.join(directory, file)
+#                                            
 #                    trashurl = NSURL.fileURLWithPath_(user_trash_path) # Path for where file will be in trash directory
 #                    url = NSURL.fileURLWithPath_(fileurl) # Path for the file being deleted
-#                    print(trashurl, url)
-
-#                    fm.trashItemAtURL_resultingItemURL_error_(url, trashurl, None) # Mac instance method
-                    shutil.move(str(fileurl), str(user_trash_path))
-
-                for file in keep_files_old_index:
-#                    print(file)
-                    user_trash_path = os.path.join('/Users/{user}/.Trash', file) # Make system path from string
-                    fileurl = os.path.join(directory, file) # Make system path as well for the fiule
-                                            
+##                    print(trashurl, url)
+#
+#                    fm.trashItemAtURL_resultingItemURL_error_(url, None, None) # Mac instance method
+##                    shutil.move(str(fileurl), str(user_trash_path))
+#
+#                for file in keep_files_old_index:
+##                    print(file)
+#                    user_trash_path = os.path.join('/Users/{user}/.Trash', file) # Make system path from string
+#                    fileurl = os.path.join(directory, file) # Make system path as well for the fiule
+#                                            
 #                    trashurl = NSURL.fileURLWithPath_(user_trash_path)
 #                    url = NSURL.fileURLWithPath_(fileurl)
-#                    print(url, trashurl)
-
-#                    fm.trashItemAtURL_resultingItemURL_error_(url, trashurl, None)
-                    shutil.move(str(fileurl), str(user_trash_path))
-
-
-#                except Exception as e:
-#                    print(e)
+##                    print(url, trashurl)
+#
+#                    fm.trashItemAtURL_resultingItemURL_error_(url, None, None)
+##                    shutil.move(str(fileurl), str(user_trash_path))
 
 
 if __name__ == "__main__":
